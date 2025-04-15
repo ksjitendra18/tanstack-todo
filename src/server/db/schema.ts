@@ -31,9 +31,7 @@ export const todos = sqliteTable(
       })
       .notNull(),
     createdAt: integer({ mode: "timestamp" }).default(sql`(unixepoch())`),
-    updatedAt: integer({ mode: "timestamp" }).$onUpdate(
-      () => sql`(unixepoch())`
-    ),
+    updatedAt: integer().$onUpdate(() => sql`(unixepoch())`),
   },
   (t) => [index("todos_user_id_index").on(t.userId)]
 );

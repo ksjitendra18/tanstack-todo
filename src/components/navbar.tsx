@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 export const Navbar = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
   return (
     <>
-      <header className="px-5 flex items-center justify-between py-5">
+      <header className="px-5 max-w-7xl mx-auto flex items-center justify-between py-5">
         <Link to="/" className="text-3xl font-bold">
           TS
         </Link>

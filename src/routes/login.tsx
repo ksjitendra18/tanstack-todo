@@ -8,8 +8,17 @@ import { db } from "~/server/db";
 import { sessions } from "~/server/db/schema";
 import { hashPassword, verifyPassword } from "~/server/hash";
 
+import { BiLoaderAlt } from "react-icons/bi";
+
 export const Route = createFileRoute("/login")({
   component: RouteComponent,
+  beforeLoad: async ({ context }) => {
+    if (context.isAuthenticated) {
+      return redirect({
+        href: "/todos",
+      });
+    }
+  },
 });
 
 export const loginFn = createServerFn({ method: "POST" })
@@ -53,10 +62,7 @@ export const loginFn = createServerFn({ method: "POST" })
       })
       .returning({ id: sessions.id });
 
-    console.log("newSession", newSession);
-
     const encryptedSessionId = await aesEncrypt(String(newSession.id));
-    console.log("encryptedSessionId", encryptedSessionId);
 
     setCookie(AUTH_COOKIES.SESSION_TOKEN, encryptedSessionId, {
       httpOnly: true,
@@ -104,10 +110,14 @@ function RouteComponent() {
         />
         <button
           disabled={isLoading}
-          className="my-5 w-full rounded-md bg-blue-600 py-2"
+          className="my-5 w-full rounded-md bg-blue-600 py-2 disabled:bg-blue-600/30"
           type="submit"
         >
-          {isLoading ? "..." : "Login"}
+          {isLoading ? (
+            <BiLoaderAlt className="animate-spin mx-auto" />
+          ) : (
+            "Login"
+          )}
         </button>
 
         <p className="text-center my-5">
