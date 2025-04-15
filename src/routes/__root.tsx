@@ -88,7 +88,6 @@ function RootComponent() {
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   const { isAuthenticated } = Route.useRouteContext();
-  console.log("isAuthenticated", isAuthenticated);
   return (
     <html>
       <head>

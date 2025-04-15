@@ -37,7 +37,6 @@ export const signupFn = createServerFn({ method: "POST" })
     }
 
     const salt = nanoid(64);
-    console.log("salt", salt);
     const hashedPassword = await hashPassword({
       password: data.password,
       salt: salt,

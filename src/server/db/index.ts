@@ -2,8 +2,6 @@ import { drizzle } from "drizzle-orm/libsql";
 import * as schema from "./schema";
 import { relations } from "./relations";
 
-console.log("DB", process.env.DATABASE_URL);
-
 export const db = drizzle({
   connection: {
     url: process.env.DATABASE_URL!,

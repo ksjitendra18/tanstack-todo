@@ -79,8 +79,6 @@ function RouteComponent() {
     fn: useServerFn(loginFn),
   });
 
-  console.log("loginMutation", loginMutation);
-
   const isLoading = loginMutation.status === "pending";
 
   return (

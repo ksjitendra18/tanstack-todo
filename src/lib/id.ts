@@ -9,7 +9,5 @@ export const generateId = () => {
 
   const hex = sec.toString(16) + msec.toString(16).padStart(5, "0");
 
-  console.log("hex", hex);
-
   return hex + nanoid();
 };

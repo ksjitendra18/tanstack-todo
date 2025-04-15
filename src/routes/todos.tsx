@@ -14,8 +14,6 @@ export const Route = createFileRoute("/todos")({
   component: RouteComponent,
   loader: () => fetchTodos(),
   beforeLoad: async ({ context }) => {
-    console.log("beforeLoad", context);
-
     if (!context.isAuthenticated) {
       return redirect({
         href: "/login?next=/todos",
