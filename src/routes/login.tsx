@@ -79,7 +79,10 @@ function RouteComponent() {
     fn: useServerFn(loginFn),
   });
 
+  console.log("loginMutation", loginMutation);
+
   const isLoading = loginMutation.status === "pending";
+
   return (
     <div>
       <form
@@ -119,6 +122,12 @@ function RouteComponent() {
             "Login"
           )}
         </button>
+
+        {loginMutation.status === "success" && loginMutation.data?.error && (
+          <div className="bg-red-600 px-2 py-1 rounded-md">
+            {loginMutation.data?.message}
+          </div>
+        )}
 
         <p className="text-center my-5">
           Don't have an account? <Link to="/signup">Sign up</Link>

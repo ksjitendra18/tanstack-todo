@@ -95,6 +95,12 @@ function RouteComponent() {
           {isLoading ? "Signup..." : "Signup"}
         </button>
 
+        {signupMutation.status === "success" && signupMutation.data?.error && (
+          <div className="bg-red-600 px-2 py-1 rounded-md">
+            {signupMutation.data?.message}
+          </div>
+        )}
+
         <p className="text-center my-5">
           Already have an account? <Link to="/login">Login</Link>
         </p>
