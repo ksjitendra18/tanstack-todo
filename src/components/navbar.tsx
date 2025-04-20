@@ -1,6 +1,9 @@
 import { Link } from "@tanstack/react-router";
 
 export const Navbar = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
+  // export const Navbar = () => {
+  //   const user = useAuth();
+  //   let isAuthenticated = !!user;
   return (
     <>
       <header className="px-5 max-w-7xl mx-auto flex items-center justify-between py-5">
@@ -17,6 +20,12 @@ export const Navbar = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
               <>
                 <li>
                   <Link to="/todos">Todos</Link>
+                </li>
+                <li>
+                  <Link to="/todo">Todo</Link>
+                </li>
+                <li>
+                  <Link to="/slow">Slow</Link>
                 </li>
                 <li>
                   <Link to="/logout">Logout</Link>

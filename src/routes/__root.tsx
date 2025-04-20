@@ -5,6 +5,7 @@ import {
   createRootRoute,
   HeadContent,
   Scripts,
+  createRootRouteWithContext,
 } from "@tanstack/react-router";
 
 import appCss from "~/styles/app.css?url";
@@ -15,7 +16,12 @@ import { AUTH_COOKIES } from "~/constants/auth";
 import { aesDecrypt } from "~/server/aes";
 import { db } from "~/server/db";
 
+import type { QueryClient } from "@tanstack/react-query";
+
 const fetchAuth = createServerFn({ method: "GET" }).handler(async () => {
+  console.log("-----------------------------------------------------");
+  const now = performance.now();
+  console.log("fetchAuth START");
   const sessionToken = getCookie(AUTH_COOKIES.SESSION_TOKEN);
 
   if (!sessionToken) {
@@ -31,28 +37,35 @@ const fetchAuth = createServerFn({ method: "GET" }).handler(async () => {
     where: {
       id: Number(decryptedSessionToken),
     },
+    columns: {},
+    with: {
+      user: {
+        columns: {
+          id: true,
+        },
+      },
+    },
   });
 
-  if (!sessionData) {
+  if (!sessionData || !sessionData.user) {
     return {
       isAuthenticated: false,
       user: null,
     };
   }
 
-  const user = await db.query.users.findFirst({
-    where: {
-      id: sessionData.userId,
-    },
-  });
+  console.log("fetchAuth DONE WITH LATENCY", performance.now() - now);
+  console.log("-----------------------------------------------------");
 
   return {
-    isAuthenticated: !!user,
-    user,
+    isAuthenticated: !!sessionData.user,
+    user: sessionData.user,
   };
 });
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient;
+}>()({
   head: () => ({
     links: [{ rel: "stylesheet", href: appCss }],
     meta: [
@@ -64,7 +77,7 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "TanStack Start Starter",
+        title: "TanStack Todos",
       },
     ],
   }),

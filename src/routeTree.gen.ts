@@ -12,6 +12,8 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as TodosImport } from './routes/todos'
+import { Route as TodoImport } from './routes/todo'
+import { Route as SlowImport } from './routes/slow'
 import { Route as SignupImport } from './routes/signup'
 import { Route as LogoutImport } from './routes/logout'
 import { Route as LoginImport } from './routes/login'
@@ -22,6 +24,18 @@ import { Route as IndexImport } from './routes/index'
 const TodosRoute = TodosImport.update({
   id: '/todos',
   path: '/todos',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const TodoRoute = TodoImport.update({
+  id: '/todo',
+  path: '/todo',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SlowRoute = SlowImport.update({
+  id: '/slow',
+  path: '/slow',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -81,6 +95,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupImport
       parentRoute: typeof rootRoute
     }
+    '/slow': {
+      id: '/slow'
+      path: '/slow'
+      fullPath: '/slow'
+      preLoaderRoute: typeof SlowImport
+      parentRoute: typeof rootRoute
+    }
+    '/todo': {
+      id: '/todo'
+      path: '/todo'
+      fullPath: '/todo'
+      preLoaderRoute: typeof TodoImport
+      parentRoute: typeof rootRoute
+    }
     '/todos': {
       id: '/todos'
       path: '/todos'
@@ -98,6 +126,8 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/logout': typeof LogoutRoute
   '/signup': typeof SignupRoute
+  '/slow': typeof SlowRoute
+  '/todo': typeof TodoRoute
   '/todos': typeof TodosRoute
 }
 
@@ -106,6 +136,8 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/logout': typeof LogoutRoute
   '/signup': typeof SignupRoute
+  '/slow': typeof SlowRoute
+  '/todo': typeof TodoRoute
   '/todos': typeof TodosRoute
 }
 
@@ -115,15 +147,32 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/logout': typeof LogoutRoute
   '/signup': typeof SignupRoute
+  '/slow': typeof SlowRoute
+  '/todo': typeof TodoRoute
   '/todos': typeof TodosRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/logout' | '/signup' | '/todos'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/logout'
+    | '/signup'
+    | '/slow'
+    | '/todo'
+    | '/todos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/logout' | '/signup' | '/todos'
-  id: '__root__' | '/' | '/login' | '/logout' | '/signup' | '/todos'
+  to: '/' | '/login' | '/logout' | '/signup' | '/slow' | '/todo' | '/todos'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/logout'
+    | '/signup'
+    | '/slow'
+    | '/todo'
+    | '/todos'
   fileRoutesById: FileRoutesById
 }
 
@@ -132,6 +181,8 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   LogoutRoute: typeof LogoutRoute
   SignupRoute: typeof SignupRoute
+  SlowRoute: typeof SlowRoute
+  TodoRoute: typeof TodoRoute
   TodosRoute: typeof TodosRoute
 }
 
@@ -140,6 +191,8 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   LogoutRoute: LogoutRoute,
   SignupRoute: SignupRoute,
+  SlowRoute: SlowRoute,
+  TodoRoute: TodoRoute,
   TodosRoute: TodosRoute,
 }
 
@@ -157,6 +210,8 @@ export const routeTree = rootRoute
         "/login",
         "/logout",
         "/signup",
+        "/slow",
+        "/todo",
         "/todos"
       ]
     },
@@ -171,6 +226,12 @@ export const routeTree = rootRoute
     },
     "/signup": {
       "filePath": "signup.tsx"
+    },
+    "/slow": {
+      "filePath": "slow.tsx"
+    },
+    "/todo": {
+      "filePath": "todo.tsx"
     },
     "/todos": {
       "filePath": "todos.tsx"

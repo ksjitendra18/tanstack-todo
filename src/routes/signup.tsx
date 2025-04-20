@@ -8,6 +8,13 @@ import { hashPassword } from "~/server/hash";
 
 export const Route = createFileRoute("/signup")({
   component: RouteComponent,
+  head: () => ({
+    meta: [
+      {
+        title: "Signup",
+      },
+    ],
+  }),
   beforeLoad: async ({ context }) => {
     if (context.isAuthenticated) {
       return redirect({
@@ -48,7 +55,7 @@ export const signupFn = createServerFn({ method: "POST" })
     });
 
     throw redirect({
-      href: data.redirectUrl || "/",
+      href: data.redirectUrl || "/login",
     });
   });
 
