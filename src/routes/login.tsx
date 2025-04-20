@@ -12,6 +12,13 @@ import { BiLoaderAlt } from "react-icons/bi";
 
 export const Route = createFileRoute("/login")({
   component: RouteComponent,
+  head: () => ({
+    meta: [
+      {
+        title: "Login",
+      },
+    ],
+  }),
   beforeLoad: async ({ context }) => {
     if (context.isAuthenticated) {
       return redirect({

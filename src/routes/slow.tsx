@@ -1,28 +1,38 @@
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { createServerFn, useServerFn } from "@tanstack/react-start";
+import { getCookie } from "@tanstack/react-start/server";
 import { and, eq } from "drizzle-orm";
-import { Suspense, useState } from "react";
-import { BiCheck, BiTrash } from "react-icons/bi";
+import { useState } from "react";
+import { BiCheck, BiPencil, BiTrash } from "react-icons/bi";
+import { AUTH_COOKIES } from "~/constants/auth";
 import { useMutation } from "~/hooks/use-mutation";
+import { aesDecrypt } from "~/server/aes";
 import { db } from "~/server/db";
 import { todos } from "~/server/db/schema";
-import { authenticatedMiddleware, logMiddleware } from "~/server/middlewares";
+import { authenticatedMiddleware } from "~/server/middlewares";
 
-export const Route = createFileRoute("/todos")({
+export const Route = createFileRoute("/slow")({
   component: RouteComponent,
+  loader: () => fetchTodos(),
   head: () => ({
     meta: [
       {
-        title: "Todos",
+        title: "Slow Todos",
       },
     ],
   }),
+  beforeLoad: async ({ context }) => {
+    if (!context.isAuthenticated) {
+      return redirect({
+        href: "/login?next=/todos",
+      });
+    }
+  },
 });
 
 const fetchTodos = createServerFn({ method: "GET" })
   .middleware([authenticatedMiddleware])
-  .handler(async ({ context, data }) => {
+  .handler(async ({ context }) => {
     const todos = await db.query.todos.findMany({
       where: {
         userId: context.userId,
@@ -37,7 +47,7 @@ const fetchTodos = createServerFn({ method: "GET" })
 
 export const todoFn = createServerFn({ method: "POST" })
   .validator((d: { todo: string }) => d)
-  .middleware([logMiddleware, authenticatedMiddleware])
+  .middleware([authenticatedMiddleware])
   .handler(async ({ data, context }) => {
     await db.insert(todos).values({
       userId: context.userId,
@@ -47,7 +57,7 @@ export const todoFn = createServerFn({ method: "POST" })
 
 export const todoCompleteFn = createServerFn({ method: "POST" })
   .validator((d: { id: number }) => d)
-  .middleware([logMiddleware, authenticatedMiddleware])
+  .middleware([authenticatedMiddleware])
   .handler(async ({ data, context }) => {
     await db
       .update(todos)
@@ -61,7 +71,7 @@ export const todoCompleteFn = createServerFn({ method: "POST" })
 
 export const todoDeleteFn = createServerFn({ method: "POST" })
   .validator((d: { id: number }) => d)
-  .middleware([logMiddleware, authenticatedMiddleware])
+  .middleware([authenticatedMiddleware])
   .handler(async ({ data, context }) => {
     await db
       .delete(todos)
@@ -70,25 +80,24 @@ export const todoDeleteFn = createServerFn({ method: "POST" })
       );
   });
 
-function Todos() {
+function RouteComponent() {
   const router = useRouter();
-  const { data } = useSuspenseQuery({
-    queryKey: ["todos"],
-    queryFn: () => fetchTodos(),
+
+  const [add, setAdd] = useState(false);
+
+  const todoMutation = useMutation({
+    fn: useServerFn(todoFn),
+
+    onSuccess: () => {
+      router.invalidate();
+    },
   });
-
-  const queryClient = useQueryClient();
-
-  const completedTodos = data?.todos?.filter((todo) => todo.isCompleted);
-
-  const uncompletedTodos = data?.todos?.filter((todo) => !todo.isCompleted);
 
   const todoCompleteMutation = useMutation({
     fn: useServerFn(todoCompleteFn),
 
     onSuccess: () => {
       router.invalidate();
-      queryClient.invalidateQueries({ queryKey: ["todos"] });
     },
   });
   const todoDeleteMutation = useMutation({
@@ -96,12 +105,54 @@ function Todos() {
 
     onSuccess: () => {
       router.invalidate();
-      queryClient.invalidateQueries({ queryKey: ["todos"] });
     },
   });
 
+  const { todos } = Route.useLoaderData();
+
+  const completedTodos = todos?.filter((todo) => todo.isCompleted);
+
+  const uncompletedTodos = todos?.filter((todo) => !todo.isCompleted);
+
   return (
-    <>
+    <div>
+      <div className="flex gap-5 items-center">
+        <h1 className="text-2xl font-bold">Slow Todos</h1>
+        <button
+          onClick={() => setAdd(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-md"
+        >
+          Add Todo
+        </button>
+      </div>
+
+      {add && (
+        <div className="my-5">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.target as HTMLFormElement);
+              todoMutation.mutate({
+                data: {
+                  todo: formData.get("todo")! as string,
+                },
+              });
+              setAdd(false);
+            }}
+          >
+            <input
+              className="px-2 py-2 rounded-md border-2 block w-full "
+              type="text"
+              name="todo"
+              placeholder="Todo"
+            />
+            <button className="my-5 px-5 rounded-md bg-blue-600 py-2 disabled:bg-blue-600/30">
+              Add
+            </button>
+          </form>
+        </div>
+      )}
+
       {uncompletedTodos && uncompletedTodos.length > 0 && (
         <div className="flex my-5 flex-col items-center gap-5">
           {uncompletedTodos.map((todo) => (
@@ -171,67 +222,6 @@ function Todos() {
           </div>
         </section>
       )}
-    </>
-  );
-}
-
-function RouteComponent() {
-  const router = useRouter();
-
-  const [add, setAdd] = useState(false);
-
-  const queryClient = useQueryClient();
-  const todoMutation = useMutation({
-    fn: useServerFn(todoFn),
-
-    onSuccess: () => {
-      router.invalidate();
-      queryClient.invalidateQueries({ queryKey: ["todos"] });
-    },
-  });
-
-  return (
-    <div>
-      <div className="flex gap-5 items-center">
-        <h1 className="text-2xl font-bold">Todos</h1>
-        <button
-          onClick={() => setAdd(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md"
-        >
-          Add Todo
-        </button>
-      </div>
-
-      {add && (
-        <div className="my-5">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const formData = new FormData(e.target as HTMLFormElement);
-              todoMutation.mutate({
-                data: {
-                  todo: formData.get("todo")! as string,
-                },
-              });
-              setAdd(false);
-            }}
-          >
-            <input
-              className="px-2 py-2 rounded-md border-2 block w-full "
-              type="text"
-              name="todo"
-              placeholder="Todo"
-            />
-            <button className="my-5 px-5 rounded-md bg-blue-600 py-2 disabled:bg-blue-600/30">
-              Add
-            </button>
-          </form>
-        </div>
-      )}
-
-      <Suspense fallback={<div>Loading...</div>}>
-        <Todos />
-      </Suspense>
     </div>
   );
 }

@@ -1,4 +1,8 @@
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { createServerFn, useServerFn } from "@tanstack/react-start";
 import { and, eq } from "drizzle-orm";
@@ -9,7 +13,12 @@ import { db } from "~/server/db";
 import { todos } from "~/server/db/schema";
 import { authenticatedMiddleware, logMiddleware } from "~/server/middlewares";
 
-export const Route = createFileRoute("/todos")({
+const todosQueryOptions = () =>
+  queryOptions({
+    queryKey: ["todos"],
+    queryFn: () => fetchTodos(),
+  });
+export const Route = createFileRoute("/todo")({
   component: RouteComponent,
   head: () => ({
     meta: [
@@ -18,6 +27,9 @@ export const Route = createFileRoute("/todos")({
       },
     ],
   }),
+  loader: async ({ context }) => {
+    context.queryClient.ensureQueryData(todosQueryOptions());
+  },
 });
 
 const fetchTodos = createServerFn({ method: "GET" })
@@ -72,10 +84,14 @@ export const todoDeleteFn = createServerFn({ method: "POST" })
 
 function Todos() {
   const router = useRouter();
-  const { data } = useSuspenseQuery({
-    queryKey: ["todos"],
-    queryFn: () => fetchTodos(),
-  });
+
+  // const { data } = useSuspenseQuery({
+
+  //   queryKey: ["todos"],
+  //   queryFn: () => fetchTodos(),
+  // });
+
+  const { data } = useSuspenseQuery(todosQueryOptions());
 
   const queryClient = useQueryClient();
 
@@ -193,7 +209,7 @@ function RouteComponent() {
   return (
     <div>
       <div className="flex gap-5 items-center">
-        <h1 className="text-2xl font-bold">Todos</h1>
+        <h1 className="text-2xl font-bold">Stream Todos</h1>
         <button
           onClick={() => setAdd(true)}
           className="bg-blue-600 text-white px-4 py-2 rounded-md"
